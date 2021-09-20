@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/contact")
 public class ContactController {
   @Autowired
-  private ContactRepository contactRepository;
+  private ContactService contactService;
 
   /**
    * GET method to fetch all contacts or contacts that match the optional name parameter
@@ -32,12 +32,8 @@ public class ContactController {
    */
   @GetMapping
   public List<Contact> getAllContacts(@RequestParam(required = false) String name) {
-    if (name == null) {
-      return contactRepository.findAll();
-    }
-    return contactRepository.findByNameContainingIgnoreCase(name);
+    return this.contactService.getAllContacts(name);
   }
-
 
   /**
    * GET method to fetch contact by contactId
@@ -47,7 +43,7 @@ public class ContactController {
    */
   @GetMapping("/{contactId}")
   public ResponseEntity<Contact> geContactById(@PathVariable Long contactId) {
-    final Optional<Contact> contact = contactRepository.findById(contactId);
+    final Optional<Contact> contact = this.contactService.getContactById(contactId);
 
     if (!contact.isPresent()) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -63,7 +59,7 @@ public class ContactController {
    */
   @PostMapping
   public Contact createContact(@Valid @RequestBody Contact contact) {
-      return contactRepository.save(contact);
+      return this.contactService.createContact(contact);
   }
 
   /**
@@ -75,23 +71,23 @@ public class ContactController {
    */
   @PutMapping("/{contactId}")
   public ResponseEntity<Contact> updateContact(@PathVariable Long contactId, @Valid @RequestBody Contact contactDetails) {
-    final Optional<Contact> contactQuery = contactRepository.findById(contactId);
+    final Optional<Contact> contactQuery = this.contactService.getContactById (contactId);
     if (!contactQuery.isPresent()) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-    final Contact contact = contactQuery.get();
-    contact.setName(contactDetails.getName());
-    return new ResponseEntity<>(contactRepository.save(contact), HttpStatus.OK);
+
+    final Contact contact = this.contactService.updateContact(contactQuery.get(), contactDetails);
+    return new ResponseEntity<>(contact, HttpStatus.OK);
   }
 
-    /**
+  /**
    * DELETE method to delete a contact
    *
    * @param contactId The id of the contact to delete
    */
   @DeleteMapping("/{contactId}")
   public void deleteContact(@PathVariable Long contactId) {
-    contactRepository.deleteById(contactId);
+    this.contactService.deleteContact(contactId);
   }
 
 }
