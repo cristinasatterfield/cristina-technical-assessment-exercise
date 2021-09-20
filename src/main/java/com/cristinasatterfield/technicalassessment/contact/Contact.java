@@ -8,7 +8,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 
-/*
+/**
  * This class will represent our contact and its attributes:
  * - ID
  * - Name
@@ -17,7 +17,7 @@ import javax.persistence.Table;
 @Table(name = "contact")
 public class Contact {
 
-  /*
+  /**
    * The attributes of the contact
    */
   @Id
@@ -27,7 +27,7 @@ public class Contact {
   @Column(nullable = false)
   private String name;
 
-  /*
+  /**
    * The getters and setters for the attributes above
    */
   public Long getId() {
