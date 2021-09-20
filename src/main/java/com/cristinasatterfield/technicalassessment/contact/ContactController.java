@@ -5,6 +5,9 @@ import java.util.Optional;
 
 import javax.validation.Valid;
 
+import com.cristinasatterfield.technicalassessment.contact.dto.CreateContactDto;
+import com.cristinasatterfield.technicalassessment.contact.dto.UpdateContactDto;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,7 +61,7 @@ public class ContactController {
    * @returns The created contact or 500 Internal Service Error
    */
   @PostMapping
-  public Contact createContact(@Valid @RequestBody Contact contact) {
+  public Contact createContact(@Valid @RequestBody CreateContactDto contact) {
       return this.contactService.createContact(contact);
   }
 
@@ -70,13 +73,13 @@ public class ContactController {
    * @returns The updated contact or 404 NOT FOUND
    */
   @PutMapping("/{contactId}")
-  public ResponseEntity<Contact> updateContact(@PathVariable Long contactId, @Valid @RequestBody Contact contactDetails) {
+  public ResponseEntity<Contact> updateContact(@PathVariable Long contactId, @Valid @RequestBody UpdateContactDto contactDto) {
     final Optional<Contact> contactQuery = this.contactService.getContactById (contactId);
     if (!contactQuery.isPresent()) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    final Contact contact = this.contactService.updateContact(contactQuery.get(), contactDetails);
+    final Contact contact = this.contactService.updateContact(contactQuery.get(), contactDto);
     return new ResponseEntity<>(contact, HttpStatus.OK);
   }
 

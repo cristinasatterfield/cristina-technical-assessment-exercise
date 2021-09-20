@@ -3,6 +3,9 @@ package com.cristinasatterfield.technicalassessment.contact;
 import java.util.List;
 import java.util.Optional;
 
+import com.cristinasatterfield.technicalassessment.contact.dto.CreateContactDto;
+import com.cristinasatterfield.technicalassessment.contact.dto.UpdateContactDto;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,12 +25,14 @@ public class ContactService {
     return contactRepository.findById(contactId);
   }
 
-  public Contact createContact(Contact contact) {
+  public Contact createContact(CreateContactDto contactDto) {
+    Contact contact = new Contact();
+    contact.setName(contactDto.getName());
     return contactRepository.save(contact);
   }
 
-  public Contact updateContact(Contact contact, Contact contactDetails) {
-    contact.setName(contactDetails.getName());
+  public Contact updateContact(Contact contact, UpdateContactDto contactDto) {
+    contact.setName(contactDto.getName());
     return contactRepository.save(contact);
   }
 
