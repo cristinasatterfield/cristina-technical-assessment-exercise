@@ -1,8 +1,6 @@
 package com.cristinasatterfield.technicalassessment.contact;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import javax.validation.Valid;
@@ -26,7 +24,12 @@ public class ContactController {
   @Autowired
   private ContactRepository contactRepository;
 
-  // GET method to fetch all contacts or contacts that match the optional name parameter
+  /**
+   * GET method to fetch all contacts or contacts that match the optional name parameter
+   *
+   * @param name A string used to search for a contact by name (optional)
+   * @returns A array of contacts that match the parameter or an empty array
+   */
   @GetMapping
   public List<Contact> getAllContacts(@RequestParam(required = false) String name) {
     if (name == null) {
@@ -35,7 +38,13 @@ public class ContactController {
     return contactRepository.findByNameContainingIgnoreCase(name);
   }
 
-  // GET method to fetch contact by contactId
+
+  /**
+   * GET method to fetch contact by contactId
+   *
+   * @param contactId The id of the contact to fetch
+   * @returns The requested contact or 404 NOT FOUND
+   */
   @GetMapping("/{contactId}")
   public ResponseEntity<Contact> geContactById(@PathVariable Long contactId) {
     final Optional<Contact> contact = contactRepository.findById(contactId);
@@ -46,8 +55,12 @@ public class ContactController {
     return new ResponseEntity<>(contact.get(), HttpStatus.OK);
   }
 
-
-  // POST method to create a contact
+  /**
+   * POST method to create a contact
+   *
+   * @param contact The details of the contact to create
+   * @returns The created contact or 500 Internal Service Error
+   */
   @PostMapping
   public Contact createContact(@Valid @RequestBody Contact contact) {
       return contactRepository.save(contact);
@@ -71,7 +84,11 @@ public class ContactController {
     return new ResponseEntity<>(contactRepository.save(contact), HttpStatus.OK);
   }
 
-  // DELETE method to delete a contact
+    /**
+   * DELETE method to delete a contact
+   *
+   * @param contactId The id of the contact to delete
+   */
   @DeleteMapping("/{contactId}")
   public void deleteContact(@PathVariable Long contactId) {
     contactRepository.deleteById(contactId);
