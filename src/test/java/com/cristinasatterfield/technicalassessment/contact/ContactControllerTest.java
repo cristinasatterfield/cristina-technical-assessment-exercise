@@ -19,7 +19,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 @TestMethodOrder(OrderAnnotation.class)
@@ -52,8 +51,22 @@ public class ContactControllerTest {
 
   @Test
   @Order(2)
+  public void testGetContactById() {
+    final Contact originalContact = createContact("E Smith");
+    final String url = "/api/v1/contact/" + originalContact.getId();
+    final ResponseEntity<Contact> response = template.getForEntity(url, Contact.class);
+    final Contact contact = response.getBody();
+
+    Assertions.assertThat(contact.getName()).isEqualTo(originalContact.getName());
+    Assertions.assertThat(contact.getId()).isEqualTo(originalContact.getId());
+    Assertions.assertThat(response.getStatusCodeValue()).isEqualTo(200);
+
+  }
+
+  @Test
+  @Order(3)
   public void testCreateContact() {
-    final CreateContactDto dto =  new CreateContactDto("E Smith");
+    final CreateContactDto dto =  new CreateContactDto("F Smith");
     final ResponseEntity<Contact> response = template.postForEntity("/api/v1/contact", dto, Contact.class);
     final Contact contact = response.getBody();
 
@@ -62,10 +75,10 @@ public class ContactControllerTest {
   }
 
   @Test
-  @Order(3)
+  @Order(4)
   public void testUpdateContact() {
-    final Long originalContactId = createContact("F Doe").getId();
-    final UpdateContactDto dto = new UpdateContactDto("F Smith");
+    final Long originalContactId = createContact("G Doe").getId();
+    final UpdateContactDto dto = new UpdateContactDto("G Smith");
     final ResponseEntity<Contact> response = template.exchange("/api/v1/contact/" + originalContactId, HttpMethod.PUT, new HttpEntity<UpdateContactDto>(dto) , Contact.class);
     final Contact contact = response.getBody();
 
@@ -74,16 +87,23 @@ public class ContactControllerTest {
   }
 
   @Test
-  @Order(4)
-  public void testGetContactBySearchString() {
+  @Order(5)
+  public void searchContactByName() {
     createContact("Bruce Wayne");
+    List<String> searchTerm = Arrays.asList("bru", "Bruce", "Wayne", "Bruce Wayne");
 
-    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("/api/v1/contact").queryParam("name", "bru");
-    final ResponseEntity<Contact[]> response = template.getForEntity(builder.toUriString(), Contact[].class);
-    final List<String> foundContacts = Arrays.asList(response.getBody()).stream().map(contact -> contact.getName()).collect(Collectors.toList());
+    for (int i = 0; i<searchTerm.size(); i++) {
+      final String url = "/api/v1/contact?name=" + searchTerm.get(i);
+      final ResponseEntity<Contact[]> response = template.getForEntity(url, Contact[].class);
+      final List<String> foundContacts = Arrays
+        .asList(response.getBody())
+        .stream()
+        .map(contact -> contact.getName())
+        .collect(Collectors.toList());
 
-    Assertions.assertThat(foundContacts.size()).isGreaterThanOrEqualTo(1);
-    Assertions.assertThat(foundContacts.contains("Bruce Wayne"));
+      Assertions.assertThat(foundContacts.size()).isPositive();
+      Assertions.assertThat(foundContacts).contains("Bruce Wayne");
+    }
   }
 
   private Contact createContact(String name) {
