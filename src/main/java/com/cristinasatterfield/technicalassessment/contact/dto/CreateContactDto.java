@@ -1,6 +1,9 @@
 package com.cristinasatterfield.technicalassessment.contact.dto;
 
+import javax.validation.constraints.NotBlank;
+
 public class CreateContactDto {
+  @NotBlank
   private String name;
 
   public CreateContactDto() {

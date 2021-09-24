@@ -58,7 +58,7 @@ public class ContactController {
    * POST method to create a contact
    *
    * @param contact The details of the contact to create
-   * @returns The created contact or 500 Internal Service Error
+   * @returns The created contact, 400 if bad request, or 500 Internal Service Error
    */
   @PostMapping
   public Contact createContact(@Valid @RequestBody CreateContactDto contact) {
@@ -90,8 +90,11 @@ public class ContactController {
    */
   @DeleteMapping("/{contactId}")
   public ResponseEntity<Void> deleteContact(@PathVariable Long contactId) {
-    this.contactService.deleteContact(contactId);
-    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    final Optional<Contact> contactQuery = this.contactService.getContactById (contactId);
+    if (!contactQuery.isPresent()) {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+      this.contactService.deleteContact(contactId);
+      return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
-
 }

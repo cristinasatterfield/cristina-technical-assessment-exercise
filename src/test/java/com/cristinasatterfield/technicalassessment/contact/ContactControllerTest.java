@@ -4,8 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.validation.constraints.Null;
-
 import com.cristinasatterfield.technicalassessment.contact.dto.CreateContactDto;
 import com.cristinasatterfield.technicalassessment.contact.dto.UpdateContactDto;
 
@@ -22,7 +20,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 @TestMethodOrder(OrderAnnotation.class)
@@ -64,11 +61,21 @@ public class ContactControllerTest {
     Assertions.assertThat(contact.getName()).isEqualTo(originalContact.getName());
     Assertions.assertThat(contact.getId()).isEqualTo(originalContact.getId());
     Assertions.assertThat(response.getStatusCodeValue()).isEqualTo(200);
-
   }
 
   @Test
   @Order(3)
+  public void testGetContactByIdNotFound() {
+    final String url = "/api/v1/contact/1000000000";
+    final ResponseEntity<Contact> response = template.getForEntity(url, Contact.class);
+    final Contact contact = response.getBody();
+
+    Assertions.assertThat(contact).isNull();
+    Assertions.assertThat(response.getStatusCodeValue()).isEqualTo(404);
+  }
+
+  @Test
+  @Order(4)
   public void testCreateContact() {
     final CreateContactDto dto =  new CreateContactDto("F Smith");
     final ResponseEntity<Contact> response = template.postForEntity("/api/v1/contact", dto, Contact.class);
@@ -79,7 +86,20 @@ public class ContactControllerTest {
   }
 
   @Test
-  @Order(4)
+  @Order(5)
+  public void testCreateContactBadRequest() {
+    final List<String> names = Arrays.asList(null, "", " ");
+
+    for (String name : names) {
+      final CreateContactDto dto =  new CreateContactDto(name);
+      final ResponseEntity<Contact> response = template.postForEntity("/api/v1/contact", dto, Contact.class);
+
+      Assertions.assertThat(response.getStatusCodeValue()).isEqualTo(400);
+    }
+  }
+
+  @Test
+  @Order(6)
   public void testUpdateContact() {
     final Long originalContactId = createContact("G Doe").getId();
     final UpdateContactDto dto = new UpdateContactDto("G Smith");
@@ -91,10 +111,25 @@ public class ContactControllerTest {
   }
 
   @Test
-  @Order(5)
+  @Order(7)
+  public void testUpdateContactBadRequest() {
+    final Long originalContactId = createContact("H Doe").getId();
+
+    final List<String> names = Arrays.asList(null, "", " ");
+
+    for (String name : names) {
+      final UpdateContactDto dto = new UpdateContactDto(name);
+      final ResponseEntity<Contact> response = template.exchange("/api/v1/contact/" + originalContactId, HttpMethod.PUT, new HttpEntity<UpdateContactDto>(dto) , Contact.class);
+
+      Assertions.assertThat(response.getStatusCodeValue()).isEqualTo(400);
+    }
+  }
+
+  @Test
+  @Order(8)
   public void testSearchContactByName() {
     createContact("Bruce Wayne");
-    List<String> searchTerm = Arrays.asList("bru", "Bruce", "Wayne", "Bruce Wayne");
+    List<String> searchTerm = Arrays.asList("bru", "Bruce", "Wayne", "Bruce Wayne", "");
 
     for (int i = 0; i<searchTerm.size(); i++) {
       final String url = "/api/v1/contact?name=" + searchTerm.get(i);
@@ -111,7 +146,7 @@ public class ContactControllerTest {
   }
 
   @Test
-  @Order(6)
+  @Order(9)
   public void testDeleteContact() {
     final Long originalContactId = createContact("H Smith").getId();
     final ResponseEntity<Void> response = template.exchange("/api/v1/contact/" + originalContactId, HttpMethod.DELETE, new HttpEntity<>(null) , Void.class);
@@ -124,10 +159,17 @@ public class ContactControllerTest {
     Assertions.assertThat(contact).isNull();
   }
 
+  @Test
+  @Order(10)
+  public void testDeleteContactNotFound() {
+    final ResponseEntity<Void> response = template.exchange("/api/v1/contact/1000000000", HttpMethod.DELETE, new HttpEntity<>(null) , Void.class);
+
+    Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+  }
+
   private Contact createContact(String name) {
     final CreateContactDto dto =  new CreateContactDto(name);
     final ResponseEntity<Contact> response = template.postForEntity("/api/v1/contact", dto, Contact.class);
     return response.getBody();
   }
-
 }
