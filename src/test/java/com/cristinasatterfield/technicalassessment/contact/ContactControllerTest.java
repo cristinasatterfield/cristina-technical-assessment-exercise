@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.validation.constraints.Null;
+
 import com.cristinasatterfield.technicalassessment.contact.dto.CreateContactDto;
 import com.cristinasatterfield.technicalassessment.contact.dto.UpdateContactDto;
 
@@ -18,7 +20,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 @TestMethodOrder(OrderAnnotation.class)
@@ -88,7 +92,7 @@ public class ContactControllerTest {
 
   @Test
   @Order(5)
-  public void searchContactByName() {
+  public void testSearchContactByName() {
     createContact("Bruce Wayne");
     List<String> searchTerm = Arrays.asList("bru", "Bruce", "Wayne", "Bruce Wayne");
 
@@ -104,6 +108,20 @@ public class ContactControllerTest {
       Assertions.assertThat(foundContacts.size()).isPositive();
       Assertions.assertThat(foundContacts).contains("Bruce Wayne");
     }
+  }
+
+  @Test
+  @Order(6)
+  public void testDeleteContact() {
+    final Long originalContactId = createContact("H Smith").getId();
+    final ResponseEntity<Void> response = template.exchange("/api/v1/contact/" + originalContactId, HttpMethod.DELETE, new HttpEntity<>(null) , Void.class);
+
+    Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+    final String url = "/api/v1/contact/" + originalContactId;
+    final Contact contact = template.getForEntity(url, Contact.class).getBody();
+
+    Assertions.assertThat(contact).isNull();
   }
 
   private Contact createContact(String name) {

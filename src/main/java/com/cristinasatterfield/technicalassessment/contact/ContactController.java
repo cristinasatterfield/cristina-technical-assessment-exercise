@@ -89,8 +89,9 @@ public class ContactController {
    * @param contactId The id of the contact to delete
    */
   @DeleteMapping("/{contactId}")
-  public void deleteContact(@PathVariable Long contactId) {
+  public ResponseEntity<Void> deleteContact(@PathVariable Long contactId) {
     this.contactService.deleteContact(contactId);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
 }
